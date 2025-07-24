@@ -1,8 +1,36 @@
-# Use official PHP-Apache image
+# Stage 1: Get Composer and install dependencies
+FROM composer:2 AS composer_stage
+
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-interaction
+
+# Stage 2: Final PHP Apache Image
 FROM php:8.2-apache
 
-# Install mysqli (needed if you ever use MySQL/Supabase with PDO)
-RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+# Install PHP extensions
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    unzip \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-install zip pdo pdo_mysql
 
-# Copy your PHP files to Apache web root
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application code
 COPY . /var/www/html/
+
+# Copy installed vendor folder from composer_stage
+COPY --from=composer_stage /app/vendor /var/www/html/vendor
+
+# Set correct permissions
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose port
+EXPOSE 80

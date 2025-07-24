@@ -1,7 +1,8 @@
 <?php
 
-require_once "db.php";
-require __DIR__ . '/../vendor/autoload.php';
+require_once(__DIR__ . '/../db.php');
+
+require __DIR__ . '/vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -16,7 +17,8 @@ $data = json_decode($input, true);
 file_put_contents("webhook_log.txt", date("Y-m-d H:i:s") . " - " . $input . PHP_EOL, FILE_APPEND);
 
 // 2. Verify Xendit token
-$config = require 'config.php';
+require_once(__DIR__ . '/../config.php');
+
 $expectedToken = $config['xendit_webhook_token'] ?? '';
 $callbackToken = $_SERVER['HTTP_X_CALLBACK_TOKEN'] ?? '';
 
